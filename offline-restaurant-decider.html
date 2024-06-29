@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Decision Bot</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        button, input { margin: 10px 0; padding: 5px; }
+        #result { font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Restaurant Decision Bot</h1>
+    <div id="userInput">
+        <input type="text" id="username" placeholder="Enter your name">
+        <button onclick="addUser()">Add User</button>
+    </div>
+    <div id="questions" style="display: none;">
+        <h2>Questions for <span id="currentUser"></span></h2>
+        <p id="currentQuestion"></p>
+        <input type="text" id="answer">
+        <button onclick="submitAnswer()">Submit Answer</button>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        const questions = [
+            "What type of cuisine do you prefer?",
+            "How far are you willing to travel? (in minutes)",
+            "What's your budget per person? (in $)",
+            "Any dietary restrictions?",
+            "Preferred ambiance? (casual, formal, etc.)",
+            "How much time do you have for the meal? (in minutes)",
+            "Any specific cravings?"
+        ];
+
+        let users = [];
+        let currentUserIndex = 0;
+        let currentQuestionIndex = 0;
+        let answers = {};
+
+        function addUser() {
+            const username = document.getElementById('username').value;
+            if (username && !users.includes(username)) {
+                users.push(username);
+                answers[username] = [];
+                document.getElementById('username').value = '';
+                if (users.length === 1) {
+                    startQuestions();
+                }
+            }
+        }
+
+        function startQuestions() {
+            document.getElementById('userInput').style.display = 'none';
+            document.getElementById('questions').style.display = 'block';
+            showNextQuestion();
+        }
+
+        function showNextQuestion() {
+            if (currentUserIndex < users.length) {
+                document.getElementById('currentUser').textContent = users[currentUserIndex];
+                document.getElementById('currentQuestion').textContent = questions[currentQuestionIndex];
+                document.getElementById('answer').value = '';
+            } else {
+                showResult();
+            }
+        }
+
+        function submitAnswer() {
+            const answer = document.getElementById('answer').value;
+            answers[users[currentUserIndex]].push(answer);
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= questions.length) {
+                currentQuestionIndex = 0;
+                currentUserIndex++;
+            }
+
+            showNextQuestion();
+        }
+
+        function showResult() {
+            document.getElementById('questions').style.display = 'none';
+            const cuisines = users.map(user => answers[user][0]);
+            const mostCommonCuisine = cuisines.sort((a,b) =>
+                cuisines.filter(v => v === a).length - cuisines.filter(v => v === b).length
+            ).pop();
+            
+            const avgBudget = users.reduce((sum, user) => sum + parseInt(answers[user][2]), 0) / users.length;
+            const avgTime = users.reduce((sum, user) => sum + parseInt(answers[user][5]), 0) / users.length;
+
+            const result = `Based on your answers, we recommend a ${mostCommonCuisine} restaurant with an average budget of $${avgBudget.toFixed(2)} per person. You have about ${avgTime.toFixed(0)} minutes for your meal.`;
+            document.getElementById('result').textContent = result;
+        }
+    </script>
+</body>
+</html>
